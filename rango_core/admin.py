@@ -1,3 +1,15 @@
 from django.contrib import admin
 
-# Register your models here.
+from . import models
+
+
+class PageAdmin(admin.ModelAdmin):
+    list_display = ['title', 'category', 'url']
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'slug': ('name',)}
+
+
+admin.site.register(models.Page, PageAdmin)
+admin.site.register(models.Category, CategoryAdmin)
