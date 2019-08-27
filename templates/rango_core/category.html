@@ -23,6 +23,8 @@
             <strong>No pages currently in category.</strong>
         {% endif %}
 
+        <a href="{% url 'rango_core:add-page' category.slug %}">Add Page</a>
+
     {% else %}
         The specified category does not exist!
     {% endif %}

@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 
+from . import forms
 from . import models
 
 
@@ -16,6 +18,54 @@ def index(request):
 
 def about(request):
     return render(request, 'rango_core/about.html', context={})
+
+
+def add_category(request):
+    form = forms.CategoryForm()
+
+    if request.method == 'POST':
+        form = forms.CategoryForm(request.POST)
+
+        if form.is_valid():
+            form.save(commit=True)
+
+            return index(request)
+
+        else:
+            print(form.errors)
+
+    return render(request, 'rango_core/add_category.html', {'form': form})
+
+
+def add_page(request, category_name_slug):
+    try:
+        category = models.Category.objects.get(slug=category_name_slug)
+    except models.Category.DoesNotExist:
+        category = None
+
+    form = forms.PageForm()
+    if request.method == "POST":
+        print(f'my method {request.method}!')
+        form = forms.PageForm(request.POST)
+
+        if form.is_valid():
+            print('im valid, lol!')
+            if category:
+                page = form.save(commit=False)
+
+                page.category = category
+                page.views = 0
+
+                page.save()
+
+                return redirect(reverse('rango_core:show-category',
+                                        kwargs={'category_name_slug': category_name_slug}))
+
+        else:
+            print(form.errors)
+
+    context = {'form': form, 'category': category}
+    return render(request, 'rango_core/add_page.html', context=context)
 
 
 def show_category(request, category_name_slug):
