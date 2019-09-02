@@ -11,7 +11,15 @@
 
 
     <div>
-        hey there partner! <br/>
+        {% if user.is_authenticated %}
+            howdy {{ user.username }}
+        {% else %}
+            hey there partner!
+        {% endif %}
+        <p>visits: {{ visits }}</p>
+
+        <br/>
+
         <strong>{{ boldmessage }}</strong><br/>
     </div>
 

@@ -1,6 +1,25 @@
 from django import forms
+from django.contrib.auth.models import User
 
 from . import models
+
+
+class UserForm(forms.ModelForm):
+    # overriding User's model field 'password' with field's own field 'password'
+    password = forms.CharField(widget=forms.PasswordInput())
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password')
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        # required for both fields should be FALSE(!),
+        # because  'blank=True' in model
+        # correlates with 'required=False' in modelform
+        model = models.UserProfile
+        fields = ('website', 'picture')
 
 
 class CategoryForm(forms.ModelForm):

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.template.defaultfilters import slugify
 
@@ -50,3 +51,19 @@ class Page(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class UserProfile(models.Model):
+    max_lengths = {'website': 200}
+
+    user = models.OneToOneField(to=User, on_delete=models.CASCADE)
+
+    #
+    website = models.URLField(max_length=max_lengths['website'],
+                              blank=True, null=False)
+
+    picture = models.ImageField(upload_to='profile_images',
+                                blank=True, null=False)
+
+    def __str__(self):
+        return f'{self.user.username}\'s profile'

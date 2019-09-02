@@ -37,9 +37,23 @@
 
 <div>
     <ul>
-        <li><a href="{% url 'rango_core:add-category' %}">Add New Category</a></li>
+
+        {% if user.is_authenticated %}
+
+            <li><a href="{% url 'rango_core:restricted' %}">Restricted Page</a></li>
+            <li><a href="{% url 'rango_core:logout' %}">Logout</a></li>
+            <li><a href="{% url 'rango_core:add-category' %}">Add New Category</a></li>
+
+        {% else %}
+
+            <li><a href="{% url 'rango_core:login' %}">Login</a></li>
+            <li><a href="{% url 'rango_core:register' %}">Sign Up</a></li>
+
+        {% endif %}
+
         <li><a href="{% url 'rango_core:about' %}">About</a></li>
         <li><a href="{% url 'rango_core:index' %}">Index</a></li>
+
     </ul>
 </div>
 
