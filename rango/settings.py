@@ -38,6 +38,11 @@ ALLOWED_HOSTS = []
 
 # ------------------------------------------------------------------------------------------------------------------- #
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session length control = persistent sessions
+SESSION_COOKIE_AGE = 1209600  # in seconds (14 days)
+
+# ------------------------------------------------------------------------------------------------------------------- #
+
 # Application definition
 
 INSTALLED_APPS = [

@@ -9,32 +9,42 @@ from django.urls import reverse
 from . import forms, models
 
 
-# -------------------------------------------------------------------------------------------------------------------- #
+def get_server_side_cookies(request, cookie, default_value=None):
+    tweaked_cookie = request.session.get(cookie, default_value)
+    return tweaked_cookie
 
-def visitor_cookie_handler(request, response):
+
+def visitor_cookie_handler(request):
     # getting the number of user's visits from cookie
     # if no such cookie --> user's first visit
-    visits = int(request.COOKIES.get('visits', '1'))
+    visits = int(get_server_side_cookies(request, 'visits', '1'))
 
     # getting the datetime of user's visits from cookie
     # if no such cookie --> user's first visit datetime
-    last_visit_cookie = request.COOKIES.get('last_visit', str(datetime.now()))
+    last_visit_cookie = get_server_side_cookies(request, 'last_visit', str(datetime.now()))
+
     last_visit_time = datetime.strptime(last_visit_cookie[:-7],  # getting rid of micro/nano secs
                                         '%Y-%m-%d %H:%M:%S')  # and parsing previous visit time
 
     # if MORE THAN ONE DAY has passed:
-    if (datetime.now() - last_visit_time).days > 0:
+    if (datetime.now() - last_visit_time).days >= 1:
         visits += 1
-        response.set_cookie('last_visit', str(datetime.now()))
+        request.session['last_visit'] = str(datetime.now())
 
-    # if LESS THAT ONE DAY has passed
     else:
-        response.set_cookie('last_visit', last_visit_cookie)
+        request.session['last_visit'] = last_visit_cookie
 
-    response.set_cookie('visits', visits)
+    request.session['visits'] = visits
 
 
-# -------------------------------------------------------------------------------------------------------------------- #
+def about(request):
+    visitor_cookie_handler(request)
+
+    about_context = {
+        'visits': request.session.get('visits'),
+    }
+
+    return render(request, 'rango_core/about.html', context=about_context)
 
 
 @login_required
@@ -42,16 +52,10 @@ def restricted(request):
     return render(request, 'rango_core/restricted.html')
 
 
-# -------------------------------------------------------------------------------------------------------------------- #
-
-
 @login_required
 def user_logout(request):
     logout(request)
     return redirect(to=reverse('rango_core:index'))
-
-
-# -------------------------------------------------------------------------------------------------------------------- #
 
 
 def user_login(request):
@@ -77,9 +81,6 @@ def user_login(request):
 
     else:
         return render(request, 'rango_core/login.html')
-
-
-# -------------------------------------------------------------------------------------------------------------------- #
 
 
 def register(request):
@@ -125,40 +126,21 @@ def register(request):
                                                         'registered': registered})
 
 
-# -------------------------------------------------------------------------------------------------------------------- #
-
-
 def index(request):
-    request.session.set_test_cookie()
-
     category_query = models.Category.objects.order_by('-likes')[:5]
     pages_query = models.Page.objects.order_by('-views')[:5]
 
-    context_dict = {'boldmessage': 'Crunchy, creamy, cookie, candy, cupcake!',
-                    'categories': category_query,
-                    'pages': pages_query,
-                    'visits': int(request.COOKIES.get('visits', '1')),
-                    }
+    visitor_cookie_handler(request)
+
+    context_dict = {
+        'boldmessage': 'Crunchy, creamy, cookie, candy, cupcake!',
+        'categories': category_query,
+        'pages': pages_query,
+    }
 
     response = render(request, 'rango_core/index.html', context=context_dict)
 
-    visitor_cookie_handler(request, response)
-
     return response
-
-
-# -------------------------------------------------------------------------------------------------------------------- #
-
-
-def about(request):
-    if request.session.test_cookie_worked():
-        print('TEST COOKIES WORKED!')
-        request.session.delete_test_cookie()
-
-    return render(request, 'rango_core/about.html', context={})
-
-
-# -------------------------------------------------------------------------------------------------------------------- #
 
 
 def add_category(request):
@@ -177,8 +159,6 @@ def add_category(request):
 
     return render(request, 'rango_core/add_category.html', {'form': form})
 
-
-# -------------------------------------------------------------------------------------------------------------------- #
 
 def add_page(request, category_name_slug):
     try:
@@ -209,8 +189,6 @@ def add_page(request, category_name_slug):
     return render(request, 'rango_core/add_page.html', context=context)
 
 
-# -------------------------------------------------------------------------------------------------------------------- #
-
 def show_category(request, category_name_slug):
     context = {}
 
@@ -225,5 +203,3 @@ def show_category(request, category_name_slug):
         context['category'] = None
 
     return render(request, 'rango_core/category.html', context=context)
-
-# -------------------------------------------------------------------------------------------------------------------- #
